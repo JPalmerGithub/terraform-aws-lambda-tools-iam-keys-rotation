@@ -1,0 +1,31 @@
+version: 2.1
+
+jobs:
+  # ensures folks are running pre-commit tests before pushing
+  terraform-pre-commit:
+    docker:
+      # https://github.com/trussworks/circleci-docker-primary#readme
+      - image: 'trussworks/circleci-docker-primary:tf12'
+    steps:
+      - 'checkout'
+      - restore_cache:
+          keys:
+            - pre-commit-dot-cache-{{ checksum ".pre-commit-config.yaml" }}
+      - run:
+          name: 'install tfsec'
+          command: |
+            env GO111MODULE=on go get -u github.com/liamg/tfsec/cmd/tfsec &&
+            sudo cp ~/go/bin/tfsec /usr/bin/tfsec
+      - run:
+          name: 'Run pre-commit tests'
+          command: 'pre-commit run -a'
+      - save_cache:
+          key: pre-commit-dot-cache-{{ checksum ".pre-commit-config.yaml" }}
+          paths:
+            - '~/.cache/pre-commit'
+
+workflows:
+  version: 2
+  terraform:
+    jobs:
+      - terraform-pre-commit
