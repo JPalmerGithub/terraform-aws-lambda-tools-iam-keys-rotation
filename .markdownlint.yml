@@ -1,0 +1,4 @@
+---
+default: true
+MD033: false # inline HTML - terraform-docs produces these
+MD045: false # allow image with no tag

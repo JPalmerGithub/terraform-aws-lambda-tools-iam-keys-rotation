@@ -1,0 +1,13 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+
+# IDEs
+.idea
+.vscode
+
+# Mac
+.DS_Store
