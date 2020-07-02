@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -eu -o pipefail
+
+AWS_PROFILE=${AWS_PROFILE:-"onemedical"}
+BUCKET_NAME=${BUCKET_NAME:-"onemedical-packaged-lambdas"}
+ARTIFACT_NAME=${ARTIFACT_NAME:-"tools-iam-keys-rotation.zip"}
+FUNCTION_DIR=${FUNCTION_DIR:-$(dirname "$0")/functions}
+
+if [[ ! -x "$(command -v pipenv)" ]]; then
+  echo "pipenv required. Check module README.md"
+  exit 1
+fi
+
+if [[ ! -x "$(command -v zip)" ]]; then
+  echo "zip required. Check module README.md"
+  exit 1
+fi
+
+if [[ ! -d ${FUNCTION_DIR} ]] ; then
+  echo "Function dir not found: ${FUNCTION_DIR}"
+  exit 1
+fi
+
+cd "${FUNCTION_DIR}"
+
+if [[ ! -f "requirements.txt" ]] ; then
+  echo "requirements.txt not found: ${FUNCTION_DIR}/requirements.txt"
+  exit 1
+fi
+
+if [[ ! -f "tools-iam-keys-rotation.py" ]] ; then
+  echo "tools-iam-keys-rotation.py not found: ${FUNCTION_DIR}/tools-iam-keys-rotation.py"
+  exit 1
+fi
+
+rm -rf source source.zip
+mkdir source
+pipenv run pip -q install -t source -r requirements.txt --no-deps
+cp ./*.py source/.
+cd source
+zip -qr ../source.zip .
+aws --profile "${AWS_PROFILE}" s3 cp ../source.zip s3://"${BUCKET_NAME}"/"${ARTIFACT_NAME}"
+
