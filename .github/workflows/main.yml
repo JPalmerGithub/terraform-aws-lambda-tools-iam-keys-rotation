@@ -5,7 +5,7 @@ on:
     paths:
       - version
     branches:
-      - master
+      - main
       - terraform011
 
 jobs:
